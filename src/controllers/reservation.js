@@ -4,11 +4,21 @@ import { createEvent, deleteEvent, updateEvent } from '../services/googleCalenda
 export const createReservation = async (req, res) => {
   try {
     // 1. リクエストボディからデータを取得
-    const { name, phone, email, date, time, notes } = req.body;
+    const {
+      name, phone, email, date, time,
+      station, area, moveInDate, initialCost,
+      occupants, occupation, buildingStructure,
+      pets, parking, interiorColor, preferences,
+      notes
+    } = req.body;
 
     // 2. MongoDB に保存
     const newReservation = await Reservation.create({
-      name, phone, email, date, time, notes
+      name, phone, email, date, time,
+      station, area, moveInDate, initialCost,
+      occupants, occupation, buildingStructure,
+      pets, parking, interiorColor, preferences,
+      notes
     });
 
     // 3. Google カレンダー登録
@@ -17,9 +27,30 @@ export const createReservation = async (req, res) => {
 
     const eventData = await createEvent({
       summary: `内覧予約: ${name}`,
-      description: `電話: ${phone}\nメール: ${email}\n備考: ${notes}`,
+      description: `
+【基本情報】
+電話: ${phone}
+メール: ${email}
+
+【希望条件】
+最寄り駅: ${station}
+希望エリア: ${area}
+入居希望時期: ${moveInDate}
+初期費用の目安: ${initialCost}
+入居人数: ${occupants}
+職業: ${occupation}
+
+【物件条件】
+建物構造: ${buildingStructure}
+ペット: ${pets}
+駐車場: ${parking}
+内装カラー: ${interiorColor}
+その他希望: ${preferences}
+
+【備考】
+${notes}`,
       start: startDateTime.toISOString(),
-      end:   endDateTime.toISOString()
+      end: endDateTime.toISOString()
     });
 
     // 4. イベントIDをMongoDBに反映
